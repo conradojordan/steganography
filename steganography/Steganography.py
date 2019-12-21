@@ -149,5 +149,5 @@ if __name__ == "__main__":
 
     else:
         print("Wrong usage! Run one of the comands below:")
-        print(f"python {path.basename(__file__)} read <image_file_path>")
-        print(f"python {path.basename(__file__)} hide <image_file_path> <message>")
+        print(f"python {path.basename(__file__)} read <image_path>")
+        print(f'python {path.basename(__file__)} hide <image_path> "<message>"')

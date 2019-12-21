@@ -1,6 +1,6 @@
 # steganography
 
-This repository contains a program to hide text messages in image files
+This repository contains a program to hide and read text messages in image files.
 
 ## Getting Started
 
@@ -16,7 +16,20 @@ pip install -r requirements.txt
 
 ### Running
 
-Simply run steganography.py and follow instructions. Some sample images are given in the repository as well.
+Simply run `python main.py` to use the command line interface or use the following commands:
+
+##### Hiding a message
+```
+python Steganography.py hide <image_path> "<message>"
+```
+##### Reading a message
+```
+python Steganography.py read <image_path>
+```
+
+### Testing
+
+To test run `pytest` while in the main directory of the repository.
 
 
 ## Built With
@@ -32,4 +45,4 @@ Simply run steganography.py and follow instructions. Some sample images are give
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the GNU General Public License v3.0 License - see the [LICENSE](LICENSE) file for details.
