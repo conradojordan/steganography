@@ -1,3 +1,4 @@
+from sys import exit as sys_exit
 from math import log as math_log
 from random import randint
 from math import floor
@@ -6,6 +7,8 @@ from os import path
 
 
 class Steganography:
+    version = "2.1"
+
     @staticmethod
     def calculate_header_size(width, height):
         return floor(math_log(width * height, 2)) + 1
@@ -65,6 +68,15 @@ class Steganography:
         Steganography.write_bits(message_image, message_bits, header_size)
 
     @staticmethod
+    def open_image(image_path):
+        try:
+            assert path.exists(image_path)
+        except AssertionError:
+            print("Image file not found!")
+        else:
+            return Image.open(image_path)
+
+    @staticmethod
     def save_image(message_image):
         base_filename, extension = path.splitext(message_image.filename)
         message_image.save(base_filename + "_with_message.png")
@@ -79,7 +91,7 @@ class Steganography:
         message_bits = Steganography.text_to_bits(message)
         header_size = Steganography.calculate_header_size(width, height)
         try:
-            assert len(bytes(message_bits, "utf8")) * 8 <= width * height - header_size
+            assert len(message_bits) <= width * height - header_size
             Steganography.write_header(message_image, message)
             Steganography.write_message(message_image, message)
             Steganography.save_image(message_image)
@@ -119,53 +131,23 @@ class Steganography:
             message_image, header_size, message_bits_size
         )
         Steganography.close_image(message_image)
-        return Steganography.bits_to_text(message_bits)
-
-
-class Interface:
-    @staticmethod
-    def choose_mode():
-        print("What would you like to do?")
-        print("1 - Hide a message")
-        print("2 - Read a message")
-        while True:
-            try:
-                user_choice = input("Enter 1 or 2 to select option: ")
-                assert user_choice in "12"
-                break
-            except AssertionError as err:
-                print("Invalid option! Please try again...")
-        return user_choice
-
-    @staticmethod
-    def choose_image():
-        while True:
-            try:
-                filename = input("Enter file name (with extension): ")
-                user_image = Image.open(filename)
-                break
-            except FileNotFoundError:
-                print(f"Image '{filename}' not found! Please try again...")
-        return user_image
-
-    @staticmethod
-    def choose_message():
-        return input("Enter message to hide: ")
+        try:
+            message = Steganography.bits_to_text(message_bits)
+        except:
+            sys_exit("Error: unable to find message in image!")
+        return message
 
 
 if __name__ == "__main__":
-    print("Welcome to steganography v3.0")
-    user_mode = Interface.choose_mode()
+    import sys
 
-    with Interface.choose_image() as user_image:
-        if user_mode == "1":
-            user_message = Interface.choose_message()
-            Steganography.hide_message(user_image, user_message)
-        else:
-            try:
-                message = Steganography.read_message(user_image)
-                print("<<<<< Message found below >>>>>")
-                print(message)
-                print("<<<<< End of message >>>>>")
-            except:
-                print("Error: unable to read message!")
+    if len(sys.argv) == 3 and sys.argv[1] == "read":
+        print(Steganography.read_message(Steganography.open_image(sys.argv[2])))
+
+    elif len(sys.argv) == 4 and sys.argv[1] == "hide":
+        Steganography.hide_message(Steganography.open_image(sys.argv[2]), sys.argv[3])
+
+    else:
+        print("Wrong usage! Run one of the comands below:")
+        print(f"python {path.basename(__file__)} read <image_file_path>")
+        print(f"python {path.basename(__file__)} hide <image_file_path> <message>")

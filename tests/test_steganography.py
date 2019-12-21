@@ -1,4 +1,4 @@
-from steganography import Steganography
+from steganography.Steganography import Steganography
 import pytest
 
 
