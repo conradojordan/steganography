@@ -5,145 +5,167 @@ from PIL import Image
 from os import path
 
 
-def hide_message():
-    while True:
-        try:
-            filename = input("Enter file name (with extension): ")
-            message_image = Image.open(filename)
-            break
-        except FileNotFoundError:
-            print(f"Image {filename} not found! Please try again...")
+class Steganography:
+    @staticmethod
+    def calculate_header_size(width, height):
+        return floor(math_log(width * height, 2)) + 1
 
-    base_filename, extension = path.splitext(filename)
-    width, height = message_image.size
-    header_size = floor(math_log(width * height, 2)) + 1
+    @staticmethod
+    def text_to_bits(message):
+        message_bytes = bytes(message, "utf8")
+        message_int = int.from_bytes(message_bytes, byteorder="big")
+        message_bits = bin(message_int)[2:]
+        message_bits_padded = message_bits.zfill(len(message_bytes) * 8)
+        return message_bits_padded
 
-    while True:
+    @staticmethod
+    def bits_to_text(message_bits):
+        message_bits_size = len(message_bits)
+        message_int = int(message_bits, 2)
+        message_bytes = message_int.to_bytes((message_bits_size // 8), byteorder="big")
+        message = message_bytes.decode("utf8")
+        return message
+
+    @staticmethod
+    def write_bits(message_image, message_bits, start_position):
+        width, height = message_image.size
+        for i in range(len(message_bits)):
+            x, y = (i + start_position) % width, ((i + start_position) // width)
+            if message_image.mode == "RGBA":
+                r, g, b, a = message_image.getpixel((x, y))
+            else:
+                r, g, b = message_image.getpixel((x, y))
+            if (r + g + b) % 2 != int(message_bits[i]):
+                rgb = randint(0, 2)
+                if rgb == 0:
+                    r = r - 1 if r != 0 else r + 1
+                elif rgb == 1:
+                    g = g - 1 if g != 0 else g + 1
+                else:
+                    b = b - 1 if b != 0 else b + 1
+            if message_image.mode == "RGBA":
+                message_image.putpixel((x, y), (r, g, b, a))
+            else:
+                message_image.putpixel((x, y), (r, g, b))
+
+    @staticmethod
+    def write_header(message_image, message):
+        width, height = message_image.size
+        header_size = Steganography.calculate_header_size(width, height)
+        message_bits = Steganography.text_to_bits(message)
+        header = bin(len(message_bits))[2:]
+        header_padded = header.zfill(header_size)
+        Steganography.write_bits(message_image, header_padded, 0)
+
+    @staticmethod
+    def write_message(message_image, message):
+        width, height = message_image.size
+        header_size = Steganography.calculate_header_size(width, height)
+        message_bits = Steganography.text_to_bits(message)
+        Steganography.write_bits(message_image, message_bits, header_size)
+
+    @staticmethod
+    def save_image(message_image):
+        base_filename, extension = path.splitext(message_image.filename)
+        message_image.save(base_filename + "_with_message.png")
+
+    @staticmethod
+    def close_image(message_image):
+        message_image.close()
+
+    @staticmethod
+    def hide_message(message_image, message):
+        width, height = message_image.size
+        message_bits = Steganography.text_to_bits(message)
+        header_size = Steganography.calculate_header_size(width, height)
         try:
-            message = input("Enter message to hide: ")
-            assert len(bytes(message, "utf8")) * 8 <= width * height - header_size
-            break
+            assert len(bytes(message_bits, "utf8")) * 8 <= width * height - header_size
+            Steganography.write_header(message_image, message)
+            Steganography.write_message(message_image, message)
+            Steganography.save_image(message_image)
         except AssertionError:
-            print(f"Message too big for image size! Please try again...")
+            print("Message too big for image size!")
+        finally:
+            Steganography.close_image(message_image)
 
-    message_bytes = bytes(message, "utf8")
-    message_int = int.from_bytes(message_bytes, byteorder="big")
-    message_bits = bin(message_int)[2:]
-    message_bits = message_bits.zfill(len(message_bytes) * 8)
-    message_bits_size = len(message_bits)
-    print(f"Size of message is {message_bits_size} bits.")
-
-    ## Write header
-    header = bin(message_bits_size)[2:]
-    header = header.zfill(header_size)
-    for i in range(header_size):
-        x, y = i % width, (i // width)
-        if message_image.mode == "RGBA":
-            r, g, b, a = message_image.getpixel((x, y))
-        else:
-            r, g, b = message_image.getpixel((x, y))
-        if (r + g + b) % 2 != int(header[i]):
-            rgb = randint(0, 2)
-            if rgb == 0:
-                r = r - 1 if r != 0 else r + 1
-            elif rgb == 1:
-                g = g - 1 if g != 0 else g + 1
+    @staticmethod
+    def read_bits(message_image, start_position, number_of_bits):
+        width, height = message_image.size
+        message = ""
+        for i in range(number_of_bits):
+            x, y = (i + start_position) % width, ((i + start_position) // width)
+            if message_image.mode == "RGBA":
+                r, g, b, a = message_image.getpixel((x, y))
             else:
-                b = b - 1 if b != 0 else b + 1
-        if message_image.mode == "RGBA":
-            message_image.putpixel((x, y), (r, g, b, a))
-        else:
-            message_image.putpixel((x, y), (r, g, b))
-
-    ## Write message
-    for i in range(message_bits_size):
-        x, y = (i + header_size) % width, ((i + header_size) // width)
-        if message_image.mode == "RGBA":
-            r, g, b, a = message_image.getpixel((x, y))
-        else:
-            r, g, b = message_image.getpixel((x, y))
-        if (r + g + b) % 2 != int(message_bits[i]):
-            rgb = randint(0, 2)
-            if rgb == 0:
-                r = r - 1 if r != 0 else r + 1
-            elif rgb == 1:
-                g = g - 1 if g != 0 else g + 1
+                r, g, b = message_image.getpixel((x, y))
+            if (r + g + b) % 2 == 1:
+                message += "1"
             else:
-                b = b - 1 if b != 0 else b + 1
-        if message_image.mode == "RGBA":
-            message_image.putpixel((x, y), (r, g, b, a))
-        else:
-            message_image.putpixel((x, y), (r, g, b))
+                message += "0"
+        return message
 
-    message_image.save(base_filename + "_with_message.png")
-    message_image.close()
-    print(f"Message succesfully hidden in '{base_filename}_with_message.png'")
+    @staticmethod
+    def read_header(message_image):
+        width, height = message_image.size
+        header_size = Steganography.calculate_header_size(width, height)
+        return Steganography.read_bits(message_image, 0, header_size)
+
+    @staticmethod
+    def read_message(message_image):
+        header = Steganography.read_header(message_image)
+        header_size = len(header)
+        message_bits_size = int(header, 2)
+        message_bits = Steganography.read_bits(
+            message_image, header_size, message_bits_size
+        )
+        Steganography.close_image(message_image)
+        return Steganography.bits_to_text(message_bits)
 
 
-def read_message():
-    while True:
-        try:
-            filename = input("Enter file name (with extension): ")
-            message_image = Image.open(filename)
-            break
-        except FileNotFoundError:
-            print(f"Image '{filename}' not found! Please try again...")
+class Interface:
+    @staticmethod
+    def choose_mode():
+        print("What would you like to do?")
+        print("1 - Hide a message")
+        print("2 - Read a message")
+        while True:
+            try:
+                user_choice = input("Enter 1 or 2 to select option: ")
+                assert user_choice in "12"
+                break
+            except AssertionError as err:
+                print("Invalid option! Please try again...")
+        return user_choice
 
-    base_filename, extension = path.splitext(filename)
-    width, height = message_image.size
-    header_size = floor(math_log(width * height, 2)) + 1
+    @staticmethod
+    def choose_image():
+        while True:
+            try:
+                filename = input("Enter file name (with extension): ")
+                user_image = Image.open(filename)
+                break
+            except FileNotFoundError:
+                print(f"Image '{filename}' not found! Please try again...")
+        return user_image
 
-    ## Read header
-    header = ""
-    for i in range(header_size):
-        x, y = i % width, (i // width)
-        if message_image.mode == "RGBA":
-            r, g, b, a = message_image.getpixel((x, y))
-        else:
-            r, g, b = message_image.getpixel((x, y))
-        if (r + g + b) % 2 == 1:
-            header = header + "1"
-        else:
-            header = header + "0"
-    message_size_bits = int(header, 2)
-
-    ## Read message
-    message_bits = ""
-    for i in range(message_size_bits):
-        x, y = (i + header_size) % width, ((i + header_size) // width)
-        if message_image.mode == "RGBA":
-            r, g, b, a = message_image.getpixel((x, y))
-        else:
-            r, g, b = message_image.getpixel((x, y))
-        if (r + g + b) % 2 == 1:
-            message_bits = message_bits + "1"
-        else:
-            message_bits = message_bits + "0"
-
-    print(f"Message found: {message_bits}")
-    print(f"Translating message...")
-    message_bits_size = len(message_bits)
-    message_int = int(message_bits, 2)
-    message_bytes = message_int.to_bytes((message_bits_size // 8), byteorder="big")
-    message = message_bytes.decode("utf8")
-    print("Hidden message:")
-    print(message)
+    @staticmethod
+    def choose_message():
+        return input("Enter message to hide: ")
 
 
 if __name__ == "__main__":
-    print("Welcome to steganography v2.0")
-    print("What would you like to do?")
-    print("1 - Hide a message")
-    print("2 - Read a message")
-    while True:
-        try:
-            user_choice = input("Enter 1 or 2 to select option: ")
-            assert user_choice in "12"
-            break
-        except AssertionError as err:
-            print("Invalid option! Please try again...")
+    print("Welcome to steganography v3.0")
+    user_mode = Interface.choose_mode()
 
-    if user_choice == "1":
-        hide_message()
-    else:
-        read_message()
+    with Interface.choose_image() as user_image:
+        if user_mode == "1":
+            user_message = Interface.choose_message()
+            Steganography.hide_message(user_image, user_message)
+        else:
+            try:
+                message = Steganography.read_message(user_image)
+                print("<<<<< Message found below >>>>>")
+                print(message)
+                print("<<<<< End of message >>>>>")
+            except:
+                print("Error: unable to read message!")

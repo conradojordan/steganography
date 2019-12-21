@@ -8,14 +8,10 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-The only prerequisite are Python 3.6 or higher and the "Pillow" image manipulation library. To install it run either
+The only prerequisite are Python 3.6 or higher, the "Pillow" image manipulation library and "pytest" for testing. To install dependencies run:
 
 ```
 pip install -r requirements.txt
-```
-or directly
-```
-pip install pillow
 ```
 
 ### Running
@@ -26,6 +22,7 @@ Simply run steganography.py and follow instructions. Some sample images are give
 ## Built With
 
 * [Pillow](https://pillow.readthedocs.io/en/stable/) - A python image manipulation library
+* [pytest](https://docs.pytest.org/en/latest/) - Python testing framework
 
 
 ## Authors
