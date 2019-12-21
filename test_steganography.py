@@ -42,3 +42,23 @@ class TestSteganography:
     )
     def test_bits_to_text(self, bits, message):
         assert Steganography.bits_to_text(bits) == message
+
+    @pytest.mark.parametrize(
+        "color_mode, message",
+        [
+            ("RGB", "This is a test message"),
+            ("RGBA", "Test message"),
+            ("RGB", "统🙅Ȭ⚓"),
+            ("RGBA", "☃⚆♽ĨÍŝǤÑÏ⚃"),
+            ("RGB", " "),
+        ],
+    )
+    def test_hiding_and_reading_messages(self, color_mode, message):
+        from PIL import Image
+
+        img = Image.new(color_mode, (200, 200))
+
+        Steganography.write_header(img, message)
+        Steganography.write_message(img, message)
+
+        assert Steganography.read_message(img) == message
