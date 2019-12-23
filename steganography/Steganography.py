@@ -72,7 +72,7 @@ class Steganography:
         try:
             assert path.exists(image_path)
         except AssertionError:
-            print("Image file not found!")
+            sys_exit("Image file not found!")
         else:
             return Image.open(image_path)
 
