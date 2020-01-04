@@ -17,7 +17,7 @@ class Steganography:
     def text_to_bits(message):
         message_bytes = bytes(message, "utf8")
         message_int = int.from_bytes(message_bytes, byteorder="big")
-        message_bits = bin(message_int)[2:]
+        message_bits = format(message_int, "b")
         message_bits_padded = message_bits.zfill(len(message_bytes) * 8)
         return message_bits_padded
 
