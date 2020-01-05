@@ -1,5 +1,4 @@
 from sys import exit as sys_exit
-from math import log as math_log
 from random import randint
 from math import floor
 from PIL import Image
@@ -7,11 +6,11 @@ from os import path
 
 
 class Steganography:
-    version = "2.1"
+    version = "2.1.1"
 
     @staticmethod
     def calculate_header_size(width, height):
-        return floor(math_log(width * height, 2)) + 1
+        return (width * height).bit_length()
 
     @staticmethod
     def text_to_bits(message):
@@ -26,7 +25,7 @@ class Steganography:
         message_bits_size = len(message_bits)
         message_int = int(message_bits, 2)
         message_bytes = message_int.to_bytes((message_bits_size // 8), byteorder="big")
-        message = message_bytes.decode("utf8")
+        message = message_bytes.decode()
         return message
 
     @staticmethod
