@@ -136,15 +136,12 @@ def read_message(message_image):
 if __name__ == "__main__":
     import sys
 
-    if len(sys.argv) == 3:
-        if sys.argv[1] == "read":
-            print(read_message(open_image(sys.argv[2])))
-        elif sys.argv[1] == "--version":
-            print(f"Steganography {version}")
-
-    elif len(sys.argv) == 4 and sys.argv[1] == "hide":
+    if sys.argv[1] in ["--version", "-v"]:
+        print(f"Steganography v{version}")
+    elif sys.argv[1] == "read":
+        print(read_message(open_image(sys.argv[2])))
+    elif sys.argv[1] == "hide":
         hide_message(open_image(sys.argv[2]), sys.argv[3])
-
     else:
         print("Wrong usage! Run one of the comands below:")
         print(f"python {path.basename(__file__)} read <image_path>")
