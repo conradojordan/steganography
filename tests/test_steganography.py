@@ -1,5 +1,6 @@
-from steganography.Steganography import Steganography
 import pytest
+
+from steganography import steganography
 
 
 class TestSteganography:
@@ -7,7 +8,7 @@ class TestSteganography:
         "width, height, header_size", [(10, 20, 8), (1920, 1080, 21), (50, 50, 12)]
     )
     def test_calculate_header_size(self, width, height, header_size):
-        assert Steganography.calculate_header_size(width, height) == header_size
+        assert steganography.calculate_header_size(width, height) == header_size
 
     @pytest.mark.parametrize(
         "message, bits",
@@ -24,7 +25,7 @@ class TestSteganography:
         ],
     )
     def test_text_to_bits(self, message, bits):
-        assert Steganography.text_to_bits(message) == bits
+        assert steganography.text_to_bits(message) == bits
 
     @pytest.mark.parametrize(
         "bits, message",
@@ -41,7 +42,7 @@ class TestSteganography:
         ],
     )
     def test_bits_to_text(self, bits, message):
-        assert Steganography.bits_to_text(bits) == message
+        assert steganography.bits_to_text(bits) == message
 
     @pytest.mark.parametrize(
         "color_mode, message",
@@ -58,7 +59,7 @@ class TestSteganography:
 
         img = Image.new(color_mode, (200, 200))
 
-        Steganography.write_header(img, message)
-        Steganography.write_message(img, message)
+        steganography.write_header(img, message)
+        steganography.write_message(img, message)
 
-        assert Steganography.read_message(img) == message
+        assert steganography.read_message(img) == message

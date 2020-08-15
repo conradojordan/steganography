@@ -1,16 +1,23 @@
-from Steganography import Steganography
-from Interface import Interface
+from sys import exit as sys_exit
+
+import steganography
+from interface import Interface
 
 
 if __name__ == "__main__":
     Interface.welcome()
     user_mode = Interface.choose_mode()
     user_image_path = Interface.choose_image()
-    user_image = Steganography.open_image(user_image_path)
+    user_image = steganography.open_image(user_image_path)
 
-    if user_mode == "1":
+    if user_mode == Interface.HIDE_MESSAGE:
         user_message = Interface.choose_message()
-        Steganography.hide_message(user_image, user_message)
-    else:
-        hidden_message = Steganography.read_message(user_image)
+        steganography.hide_message(user_image, user_message)
+
+    elif user_mode == Interface.READ_MESSAGE:
+        hidden_message = steganography.read_message(user_image)
         Interface.print_message(hidden_message)
+
+    else:
+        print("Invalid option, exiting...")
+        sys_exit()

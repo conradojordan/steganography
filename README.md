@@ -20,16 +20,16 @@ Simply run `python main.py` to use the command line interface or use the followi
 
 ##### Hiding a message
 ```
-python Steganography.py hide <image_path> "<message>"
+python steganography.py hide <image_path> "<message>"
 ```
 ##### Reading a message
 ```
-python Steganography.py read <image_path>
+python steganography.py read <image_path>
 ```
 
 ### Testing
 
-To test run `pytest` while in the main directory of the repository.
+To test, run `pytest` while in the main directory of the repository.
 
 
 ## Built With

@@ -1,11 +1,15 @@
-from Steganography import Steganography
 from os import path
+
+import steganography
 
 
 class Interface:
+    HIDE_MESSAGE = "1"
+    READ_MESSAGE = "2"
+
     @staticmethod
     def welcome():
-        print(f"Welcome to steganography v{Steganography.version}")
+        print(f"Welcome to steganography v{steganography.version}")
 
     @staticmethod
     def choose_mode():
@@ -15,9 +19,9 @@ class Interface:
         while True:
             try:
                 user_choice = input("Enter 1 or 2 to select option: ")
-                assert user_choice in "12"
+                assert user_choice in ["1", "2"]
                 break
-            except AssertionError as err:
+            except AssertionError:
                 print("Invalid option! Please try again...")
         return user_choice
 
