@@ -1,8 +1,8 @@
 from sys import exit as sys_exit
 
-import steganography
 from interface import Interface
 
+import steganography
 
 if __name__ == "__main__":
     Interface.welcome()

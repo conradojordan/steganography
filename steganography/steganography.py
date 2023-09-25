@@ -4,28 +4,28 @@ from sys import exit as sys_exit
 
 from PIL import Image
 
-version = "2.1.2"
+version = "2.1.3"
 
 
-def calculate_header_size(width, height):
+def calculate_header_size(width: int, height: int) -> int:
     return (width * height).bit_length()
 
 
-def text_to_bits(message):
+def text_to_bits(message: str) -> str:
     message_bytes = message.encode("utf8")
     message_bits = "".join(format(byte, "08b") for byte in message_bytes)
     return message_bits
 
 
-def bits_to_text(message_bits):
+def bits_to_text(message_bits: str) -> str:
     bytes_list_str = [message_bits[i : i + 8] for i in range(0, len(message_bits), 8)]
     bytes_list = [int(chunk, 2) for chunk in bytes_list_str]
     bytes_obj = bytes(bytes_list)
-    return bytes_obj.decode("utf-8")
+    return bytes_obj.decode("utf8")
 
 
-def write_bits(message_image, message_bits, start_position):
-    width, height = message_image.size
+def write_bits(message_image, message_bits: int, start_position: int) -> None:
+    width, _ = message_image.size
     for i in range(len(message_bits)):
         x, y = (i + start_position) % width, ((i + start_position) // width)
         if message_image.mode == "RGBA":
@@ -46,7 +46,7 @@ def write_bits(message_image, message_bits, start_position):
             message_image.putpixel((x, y), (r, g, b))
 
 
-def write_header(message_image, message):
+def write_header(message_image, message: str) -> None:
     width, height = message_image.size
     header_size = calculate_header_size(width, height)
     message_bits = text_to_bits(message)
@@ -55,14 +55,14 @@ def write_header(message_image, message):
     write_bits(message_image, header_padded, 0)
 
 
-def write_message(message_image, message):
+def write_message(message_image, message: str) -> None:
     width, height = message_image.size
     header_size = calculate_header_size(width, height)
     message_bits = text_to_bits(message)
     write_bits(message_image, message_bits, header_size)
 
 
-def open_image(image_path):
+def open_image(image_path: str):
     try:
         assert path.exists(image_path)
     except AssertionError:
@@ -71,16 +71,16 @@ def open_image(image_path):
         return Image.open(image_path)
 
 
-def save_image(message_image):
+def save_image(message_image) -> None:
     base_filename, extension = path.splitext(message_image.filename)
     message_image.save(base_filename + "_with_message.png")
 
 
-def close_image(message_image):
+def close_image(message_image) -> None:
     message_image.close()
 
 
-def hide_message(message_image, message):
+def hide_message(message_image, message: str) -> None:
     width, height = message_image.size
     message_bits = text_to_bits(message)
     header_size = calculate_header_size(width, height)
@@ -95,8 +95,8 @@ def hide_message(message_image, message):
         close_image(message_image)
 
 
-def read_bits(message_image, start_position, number_of_bits):
-    width, height = message_image.size
+def read_bits(message_image, start_position: int, number_of_bits: int):
+    width, _ = message_image.size
     message = ""
     for i in range(number_of_bits):
         x, y = (i + start_position) % width, ((i + start_position) // width)
@@ -111,13 +111,13 @@ def read_bits(message_image, start_position, number_of_bits):
     return message
 
 
-def read_header(message_image):
+def read_header(message_image: str):
     width, height = message_image.size
     header_size = calculate_header_size(width, height)
     return read_bits(message_image, 0, header_size)
 
 
-def read_message(message_image):
+def read_message(message_image: str):
     header = read_header(message_image)
     header_size = len(header)
     message_bits_size = int(header, 2)
