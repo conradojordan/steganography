@@ -12,19 +12,16 @@ def calculate_header_size(width, height):
 
 
 def text_to_bits(message):
-    message_bytes = bytes(message, "utf8")
-    message_int = int.from_bytes(message_bytes, byteorder="big")
-    message_bits = format(message_int, "b")
-    message_bits_padded = message_bits.zfill(len(message_bytes) * 8)
-    return message_bits_padded
+    message_bytes = message.encode("utf8")
+    message_bits = "".join(format(byte, "08b") for byte in message_bytes)
+    return message_bits
 
 
 def bits_to_text(message_bits):
-    message_bits_size = len(message_bits)
-    message_int = int(message_bits, 2)
-    message_bytes = message_int.to_bytes((message_bits_size // 8), byteorder="big")
-    message = message_bytes.decode()
-    return message
+    bytes_list_str = [message_bits[i : i + 8] for i in range(0, len(message_bits), 8)]
+    bytes_list = [int(chunk, 2) for chunk in bytes_list_str]
+    bytes_obj = bytes(bytes_list)
+    return bytes_obj.decode("utf-8")
 
 
 def write_bits(message_image, message_bits, start_position):
