@@ -1,2 +1,2 @@
-Pillow>=7.1.0
-pytest
+Pillow==10.0.1
+pytest==7.4.2
