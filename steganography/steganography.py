@@ -24,42 +24,64 @@ def bits_to_text(message_bits: str) -> str:
     return bytes_obj.decode("utf8")
 
 
-def write_bits(message_image, message_bits: int, start_position: int) -> None:
-    width, _ = message_image.size
+def get_pixel(image, x, y) -> tuple:
+    if image.mode == "RGBA":
+        r, g, b, a = image.getpixel((x, y))
+    else:
+        r, g, b = image.getpixel((x, y))
+        a = None
+
+    return (r, g, b, a)
+
+
+def put_pixel(image, x, y, pixel):
+    r, g, b, a = pixel
+
+    if image.mode == "RGBA":
+        image.putpixel((x, y), (r, g, b, a))
+    else:
+        image.putpixel((x, y), (r, g, b))
+
+
+def update_pixel(pixel: tuple, bit: int) -> tuple:
+    r, g, b, a = pixel
+
+    if (r + g + b) % 2 != bit:
+        channel = randint(1, 3)
+        if channel == 1:
+            r = r - 1 if r != 0 else r + 1
+        elif channel == 2:
+            g = g - 1 if g != 0 else g + 1
+        else:
+            b = b - 1 if b != 0 else b + 1
+
+    return (r, g, b, a)
+
+
+def write_bits(image, message_bits: int, start_position: int) -> None:
+    width, _ = image.size
     for i in range(len(message_bits)):
         x, y = (i + start_position) % width, ((i + start_position) // width)
-        if message_image.mode == "RGBA":
-            r, g, b, a = message_image.getpixel((x, y))
-        else:
-            r, g, b = message_image.getpixel((x, y))
-        if (r + g + b) % 2 != int(message_bits[i]):
-            rgb = randint(0, 2)
-            if rgb == 0:
-                r = r - 1 if r != 0 else r + 1
-            elif rgb == 1:
-                g = g - 1 if g != 0 else g + 1
-            else:
-                b = b - 1 if b != 0 else b + 1
-        if message_image.mode == "RGBA":
-            message_image.putpixel((x, y), (r, g, b, a))
-        else:
-            message_image.putpixel((x, y), (r, g, b))
+
+        pixel = get_pixel(image, x, y)
+        pixel = update_pixel(pixel, int(message_bits[i]))
+        put_pixel(image, x, y, pixel)
 
 
-def write_header(message_image, message: str) -> None:
-    width, height = message_image.size
+def write_header(image, message: str) -> None:
+    width, height = image.size
     header_size = calculate_header_size(width, height)
     message_bits = text_to_bits(message)
     header = bin(len(message_bits))[2:]
     header_padded = header.zfill(header_size)
-    write_bits(message_image, header_padded, 0)
+    write_bits(image, header_padded, 0)
 
 
-def write_message(message_image, message: str) -> None:
-    width, height = message_image.size
+def write_message(image, message: str) -> None:
+    width, height = image.size
     header_size = calculate_header_size(width, height)
     message_bits = text_to_bits(message)
-    write_bits(message_image, message_bits, header_size)
+    write_bits(image, message_bits, header_size)
 
 
 def open_image(image_path: str):
@@ -71,39 +93,38 @@ def open_image(image_path: str):
         return Image.open(image_path)
 
 
-def save_image(message_image) -> None:
-    base_filename, extension = path.splitext(message_image.filename)
-    message_image.save(base_filename + "_with_message.png")
+def save_image(image) -> None:
+    base_filename, extension = path.splitext(image.filename)
+    image.save(base_filename + "_with_message.png")
 
 
-def close_image(message_image) -> None:
-    message_image.close()
+def close_image(image) -> None:
+    image.close()
 
 
-def hide_message(message_image, message: str) -> None:
-    width, height = message_image.size
-    message_bits = text_to_bits(message)
+def hide_message(image, message: str) -> None:
+    width, height = image.size
     header_size = calculate_header_size(width, height)
+
+    message_bits = text_to_bits(message)
     try:
         assert len(message_bits) <= width * height - header_size
-        write_header(message_image, message)
-        write_message(message_image, message)
-        save_image(message_image)
+        write_header(image, message)
+        write_message(image, message)
+        save_image(image)
     except AssertionError:
         print("Message too big for image size!")
     finally:
-        close_image(message_image)
+        close_image(image)
 
 
-def read_bits(message_image, start_position: int, number_of_bits: int):
-    width, _ = message_image.size
+def read_bits(image, start_position: int, number_of_bits: int):
+    width, height = image.size
     message = ""
     for i in range(number_of_bits):
         x, y = (i + start_position) % width, ((i + start_position) // width)
-        if message_image.mode == "RGBA":
-            r, g, b, a = message_image.getpixel((x, y))
-        else:
-            r, g, b = message_image.getpixel((x, y))
+
+        r, g, b, a = get_pixel(image, x, y)
         if (r + g + b) % 2 == 1:
             message += "1"
         else:
@@ -111,18 +132,18 @@ def read_bits(message_image, start_position: int, number_of_bits: int):
     return message
 
 
-def read_header(message_image: str):
-    width, height = message_image.size
+def read_header(image: str):
+    width, height = image.size
     header_size = calculate_header_size(width, height)
-    return read_bits(message_image, 0, header_size)
+    return read_bits(image, 0, header_size)
 
 
-def read_message(message_image: str):
-    header = read_header(message_image)
+def read_message(image: str):
+    header = read_header(image)
     header_size = len(header)
     message_bits_size = int(header, 2)
-    message_bits = read_bits(message_image, header_size, message_bits_size)
-    close_image(message_image)
+    message_bits = read_bits(image, header_size, message_bits_size)
+    close_image(image)
     try:
         message = bits_to_text(message_bits)
     except:
