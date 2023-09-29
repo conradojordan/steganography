@@ -1,6 +1,6 @@
 import pytest
 
-from steganography import steganography
+from src import steganography
 
 
 class TestSteganography:
@@ -21,7 +21,10 @@ class TestSteganography:
                 "统🙅Ȭ⚓",
                 "111001111011101110011111111100001001111110011001100001011100100010101100111000101001101010010011",
             ),
-            (" ", "00100000",),
+            (
+                " ",
+                "00100000",
+            ),
         ],
     )
     def test_text_to_bits(self, message, bits):
@@ -38,7 +41,10 @@ class TestSteganography:
                 "111001111011101110011111111100001001111110011001100001011100100010101100111000101001101010010011",
                 "统🙅Ȭ⚓",
             ),
-            ("00100000", " ",),
+            (
+                "00100000",
+                " ",
+            ),
         ],
     )
     def test_bits_to_text(self, bits, message):
