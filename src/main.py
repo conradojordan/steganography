@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from sys import exit as sys_exit
 
 from interface import Interface

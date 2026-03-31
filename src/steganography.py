@@ -4,7 +4,7 @@ from sys import exit as sys_exit
 
 from PIL import Image
 
-version = "2.1.3"
+version = "2.2.0"
 
 
 def calculate_header_size(width: int, height: int) -> int:
